@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html ng-app="techNodeApp">
+<head>
+	<meta charset="UTF-8">
+	<title>TechNode</title>
+	<link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
+	<link rel="stylesheet" href="/styles/room.css" />
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/components/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="/components/bootstrap/dist/js/bootstrap.js"></script>
+	<script type="text/javascript" src="/components/angular/angular.js"></script>
+	<script type="text/javascript" src="/components/angular/angular-route.js"></script>
+	<script type="text/javascript" src="/services/socket.js"></script>
+	<script type="text/javascript" src="/directives/auto-scroll-to-bottom.js"></script>
+	<script type="text/javascript" src="/directives/ctrl-enter-break-line.js"></script>
+	<script type="text/javascript" src="/controllers/room.js"></script>
+	<script type="text/javascript" src="/controllers/login.js"></script>
+	<script type="text/javascript" src="/technode.js"></script>
+</head>
+<body>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-header">
+			<a href="#" class="navbar-brand">TechNode</a>
+		</div>
+	</div>
+	<div class="container" style="margin-top: 100px;">
+		<div class="row" ng-view></div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "WebChat1.0",
+  "version": "0.0.1",
+  "description": "socket.io angular.js node.js express",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "socket.io",
+    "angular.js",
+    "node.js",
+    "express",
+    "web-chat"
+  ],
+  "author": "json",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.11.2",
+    "socket.io": "^1.3.3"
+  }
+}
