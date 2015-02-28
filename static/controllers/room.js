@@ -1,11 +1,13 @@
-angular.module('RoomController', [])
+angular.module('RoomController', [
+  'socketService'
+])
 .controller('RoomCtrl', ['$scope', 'socket', function ($scope, socket) {
 
   $scope.messages = [];
 
   socket.emit('getAllMessages');
 
-  socket.on('allMessage', function (messages) {
+  socket.on('allMessages', function (messages) {
 
     $scope.messages = messages;
 
@@ -27,6 +29,7 @@ angular.module('RoomController', [])
 
     if(flag) {
       $scope.messages.push($scope.newMessage);
+      socket.emit('createMessage', $scope.newMessage);
     }
     $scope.newMessage = '';
   };
