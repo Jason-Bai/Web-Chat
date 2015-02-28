@@ -1,8 +1,63 @@
 var express = require('express');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var logger = require('morgan');
 var app = express();
 var port = process.env.PORT || 3000;
+var Controllers = require('./controllers');
 
+app.use(logger('dev'));
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+	secret: 'webchat',
+	cookie: {
+		maxAge: 60 * 1000
+	},
+	resave: true,
+  saveUninitialized: true
+}));
 app.use(express.static(__dirname + '/static'));
+
+app.get('/api/validate', function  (req, res) {
+	_userId = req.session._userId;
+	if(_userId) {
+		// 已登录
+		Controllers.User.findUserById(_userId, function  (err, user) {
+			if(err) {
+				res.status(401).json({msg: err});
+			} else {
+				res.json(user);
+			}
+		});
+	} else {
+		// 未登录
+		res.status(401).json(null);
+	}
+});
+
+app.post('/api/login', function  (req, res) {
+	email = req.body.email;
+	if(email) {
+		Controllers.User.findByEmailOrCreate(email, function  (err, user) {
+			if(err) {
+				res.status(500).json({msg: err});
+			} else {
+				req.session._userId = user._id;
+				res.status(200).json(user);
+			}
+		});
+	} else {
+		res.status(403).json(null);
+	}
+});
+
+app.get('/api/logout', function  (req, res) {
+	req.session._userId = null;
+	res.json(401);
+});
 
 app.use(function (req, res) {
 

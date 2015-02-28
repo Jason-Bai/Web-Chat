@@ -15,13 +15,23 @@
 	<script type="text/javascript" src="/directives/ctrl-enter-break-line.js"></script>
 	<script type="text/javascript" src="/controllers/room.js"></script>
 	<script type="text/javascript" src="/controllers/login.js"></script>
-	<script type="text/javascript" src="/technode.js"></script>
+	<script type="text/javascript" src="/webchat.js"></script>
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">
 		<div class="navbar-header">
-			<a href="#" class="navbar-brand">TechNode</a>
+			<a href="#" class="navbar-brand">WebChat</a>
 		</div>
+		<nav class="collapse navbar-collapse" role="navigation">
+			<ul class="nav navbar-nav navbar-right" ng-show="me">
+				<li>
+					<img ng-src="{{me.avatarUrl}}" title="{{me.name}}" class="img-rounded img-avatar"/>
+				</li>
+				<li>
+					<a href="javascript:void(0);" ng-click="logout()">Log out</a>
+				</li>
+			</ul>
+		</nav>
 	</div>
 	<div class="container" style="margin-top: 100px;">
 		<div class="row" ng-view></div>

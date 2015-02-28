@@ -1,7 +1,7 @@
-<from>
+<from class="form-inline">
   <div class="from-group">
-    <label class="control-label">Email</label>
-    <input type="email" class="form-control"/>
+    <label class="sr-only">Gmail</label>
+    <input type="email" required class="form-control" ng-model="email" placeholder="Mail Account"/>
   </div>
-  <button type="submit" class="btn btn-primary">注册</button>
+  <button type="button" class="btn btn-primary" ng-click="login()">Enter</button>
 </from>
