@@ -3,9 +3,15 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var logger = require('morgan');
+var signature = require('cookie-signature');
+var Cookie = require('cookie');
+var MongoStore = require('connect-mongo')(session);
 var app = express();
 var port = process.env.PORT || 3000;
 var Controllers = require('./controllers');
+var sessionStore = new MongoStore({
+	url: 'mongodb://localhost/webchat'
+});
 
 app.use(logger('dev'));
 app.use(cookieParser());
@@ -17,7 +23,8 @@ app.use(session({
 		maxAge: 60 * 1000
 	},
 	resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
+  store: sessionStore
 }));
 app.use(express.static(__dirname + '/static'));
 
@@ -68,6 +75,27 @@ app.use(function (req, res) {
 /*var server = require('http').createServer(app),
 */
 var io = require('socket.io').listen(app.listen(port));
+
+io.set('authorization', function  (handshakeData, accept) {
+	handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
+	var connectSid = handshakeData.cookie['connect.sid'];
+	connectSid = connectSid && 0 == connectSid.indexOf('s:') ? signature.unsign(connectSid.slice(2), 'webchat') : connectSid;
+	if(connectSid) {
+		sessionStore.get(connectSid, function  (err, session) {
+			if(err) {
+				return accept(err.message, false);
+			} else {
+				handshakeData.session = session;
+				if(!session._userId) {
+					return accept('No login', false);
+				}
+			}
+		});
+	} else {
+		return accept('No session');
+	}
+	accept(null, true);
+});
 
 var messages = [];
 
