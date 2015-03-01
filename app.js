@@ -13,6 +13,11 @@ var sessionStore = new MongoStore({
 	url: 'mongodb://localhost/webchat'
 });
 
+
+/*
+var SessionSockets = require('session.socket.io'),
+    sessionSockets = new SessionSockets(io, sessionStore, cookieParser);
+*/
 app.use(logger('dev'));
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -53,7 +58,13 @@ app.post('/api/login', function  (req, res) {
 				res.status(500).json({msg: err});
 			} else {
 				req.session._userId = user._id;
-				res.status(200).json(user);
+                Controllers.User.online(user._id, function (err, user) {
+                    if(err) {
+                        res.status(500).json({msg: err});
+                    } else {
+                        res.json(user);
+                    }
+                });
 			}
 		});
 	} else {
@@ -62,8 +73,15 @@ app.post('/api/login', function  (req, res) {
 });
 
 app.get('/api/logout', function  (req, res) {
-	req.session._userId = null;
-	res.json(401);
+    _userId = req.session._userId;
+    Controllers.User.offline(_userId, function (err, user) {
+        if(err) {
+            res.status(500).json({msg: err});
+        } else {
+            res.status(200).json(null);
+            delete req.session._userId;
+        }
+    });
 });
 
 app.use(function (req, res) {
@@ -75,33 +93,67 @@ app.use(function (req, res) {
 /*var server = require('http').createServer(app),
 */
 var io = require('socket.io').listen(app.listen(port));
-
+io.use(function (socket, next) {
+    var handshakeData = socket.request;
+	handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
+	var connectSid = handshakeData.cookie['connect.sid'];
+	connectSid = connectSid && 0 == connectSid.indexOf('s:') ? signature.unsign(connectSid.slice(2), 'webchat') : connectSid;
+	if(connectSid) {
+		sessionStore.get(connectSid, function  (err, session) {
+            if(err) {
+				next(new Error(err.message));
+			} else {
+				socket.handshake.session = session;
+                next();
+			}
+		});
+	} else {
+	    next(new Error('No Session'));
+    }
+});
+/*
 io.set('authorization', function  (handshakeData, accept) {
 	handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
 	var connectSid = handshakeData.cookie['connect.sid'];
 	connectSid = connectSid && 0 == connectSid.indexOf('s:') ? signature.unsign(connectSid.slice(2), 'webchat') : connectSid;
 	if(connectSid) {
 		sessionStore.get(connectSid, function  (err, session) {
-			if(err) {
-				return accept(err.message, false);
+            if(err) {
+				accept(err.message, false);
 			} else {
 				handshakeData.session = session;
-				if(!session._userId) {
-					return accept('No login', false);
-				}
+                accept(null, true);
 			}
 		});
 	} else {
-		return accept('No session');
+	    accept('No session', false);
 	}
-	accept(null, true);
 });
-
+*/
 var messages = [];
+io.on('connection', function (socket) {
+    _userId = socket.handshake.session._userId;
 
-io.sockets.on('connection', function (socket) {
+    Controllers.User.online(_userId, function (err, user) {
+        if(err) {
+            socket.emit('err', {msg: err});
+        } else {
+            socket.broadcast.emit('online', user);
+        }
+    });
 
-	// socket.emit('connected');
+    socket.on('disconnect', function () {
+        Controllers.User.offline(_userId, function (err, user) {
+            if(err) {
+                socket.emit('err', {
+                    msg: err
+                });
+            } else {
+                socket.broadcast.emit('offline', user);
+                delete socket.handshake.session;
+            }
+        });
+    });
 
 	socket.on('getAllMessages', function () {
 
@@ -117,6 +169,15 @@ io.sockets.on('connection', function (socket) {
 
 	});
 
+    socket.on('getRoom', function () {
+        Controllers.User.getOnlineUsers(function (err, users) {
+            if(err) {
+                socket.emit('err', {msg: err});
+            } else {
+                socket.emit('roomData', {users: users, messages: messages});
+            }
+        });
+    });
 });
 
 /*

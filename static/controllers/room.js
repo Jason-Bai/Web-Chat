@@ -28,9 +28,30 @@ angular.module('RoomController', [
     }
 
     if(flag) {
-      $scope.messages.push($scope.newMessage);
-      socket.emit('createMessage', $scope.newMessage);
+      var msgObj = {
+        message: $scope.newMessage,
+        creator: $scope.me
+      };
+      $scope.messages.push(msgObj);
+      socket.emit('createMessage', msgObj);
     }
     $scope.newMessage = '';
   };
+
+  socket.on('roomData', function (room) {
+    $scope.room = room;  
+  });
+
+  socket.emit('getRoom');
+
+  socket.on('online', function (user) {
+    $scope.room.users.push(user);
+  });
+
+  socket.on('offline', function (user) {
+    _userId = user._userId;
+    $scope.room.users = $scope.room.users.filter(function (user) {
+        return user._id != _userId;
+    });
+  });
 }]);
