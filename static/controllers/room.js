@@ -14,7 +14,7 @@ angular.module('RoomController', [
   });
 
   socket.on('messageAdded', function (message) {
-    $scope.messages.push(message);
+    $scope.room.messages.push(message);
   });
 
   $scope.createMessage = function  () {
@@ -29,10 +29,9 @@ angular.module('RoomController', [
 
     if(flag) {
       var msgObj = {
-        message: $scope.newMessage,
+        content: $scope.newMessage,
         creator: $scope.me
       };
-      $scope.messages.push(msgObj);
       socket.emit('createMessage', msgObj);
     }
     $scope.newMessage = '';

@@ -7,8 +7,8 @@ angular.module('techNodeApp', [
 	'autoScrollToBottomDirective',
 	'ctrlEnterBreakLineDirective',
 	'RoomController',
-	'LoginController']
-)
+	'LoginController'
+])
 .run(function  ($window, $rootScope, $http, $location) {
 
   $http({

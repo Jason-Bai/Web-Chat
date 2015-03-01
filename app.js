@@ -12,7 +12,7 @@ var Controllers = require('./controllers');
 var sessionStore = new MongoStore({
 	url: 'mongodb://localhost/webchat'
 });
-
+var async = require('async');
 
 /*
 var SessionSockets = require('session.socket.io'),
@@ -156,20 +156,42 @@ io.on('connection', function (socket) {
     });
 
 	socket.on('getAllMessages', function () {
-
-		socket.emit('allMessages', messages);
-
+        Controllers.Message.read(function (err, messages) {
+		    socket.emit('allMessages', messages);
+        });
 	});
 
 	socket.on('createMessage', function (message) {
+        Controllers.Message.create(message, function (err, message) {
+            if(err) {
+                socket.emit('err', {msg: err});
+            } else {
+                io.sockets.emit('messageAdded', message);
+            }
+        });
+		//messages.push(message);
 
-		messages.push(message);
-
-		socket.broadcast.emit('messageAdded', message);
+		//socket.broadcast.emit('messageAdded', message);
 
 	});
 
     socket.on('getRoom', function () {
+        async.parallel([function (done) {
+            Controllers.User.getOnlineUsers(done);
+        },
+        function (done) {
+            Controllers.Message.read(done);
+        }], function (err, results) {
+            if(err) {
+                socket.emit('err', {msg: err});
+            } else {
+                socket.emit('roomData', {
+                    users: results[0],
+                    messages: results[1]
+                });
+            }
+        });
+        /*
         Controllers.User.getOnlineUsers(function (err, users) {
             if(err) {
                 socket.emit('err', {msg: err});
@@ -177,6 +199,7 @@ io.on('connection', function (socket) {
                 socket.emit('roomData', {users: users, messages: messages});
             }
         });
+        */
     });
 });
 
