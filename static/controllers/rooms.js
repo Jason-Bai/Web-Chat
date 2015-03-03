@@ -29,4 +29,23 @@ angular.module('RoomsController', [
     $scope.rooms.push(room);
     $scope.searchRoom();
   });
+
+  $scope.enterRoom = function  (room) {
+    socket.emit('joinRoom', {
+      user: $scope.me,
+      room: room
+    });
+  };
+
+  socket.once('joinRoom.' + $scope.me._id, function  (join) {
+    $locatin.path('/rooms/' + join.room._id);
+  });
+
+  socket.on('joinRoom', function  (join) {
+    $scope.rooms.forEach(function  (room) {
+      if(room._id == join.room._id) {
+        room.users.push(join.user);
+      }
+    });
+  });
 });

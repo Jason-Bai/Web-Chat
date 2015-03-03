@@ -32,3 +32,43 @@ exports.read = function  (callback) {
     }
   });
 };
+
+exports.getById = function = (_roomId, callback) {
+  db.Room.findOne({
+    _id: _roomId
+  }, function  (err, room) {
+    if(err) {
+      callback(err);
+    } else {
+      async.parallel([
+        function(done) {
+          db.User.find({
+            _roomId: _roomId,
+            online: true
+          }, function  (err, users) {
+            done(err, users);
+          });
+        },
+        function  (done) {
+          db.Message.find({
+            _roomId: _roomId
+          })
+          .sort({'createAt': -1})
+          .limit(20)
+          .exec(function  (err, messages) {
+            done(err, messages.reverse())
+          });
+        }
+      ], function  (err, results) {
+        if(err) {
+          callback(err);
+        } else {
+          room = room.toObject();
+          room.users = results[0];
+          room.messages = results[1];
+          callback(null, room);
+        }
+      });
+    }
+  });
+};

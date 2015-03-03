@@ -186,22 +186,26 @@ io.on('connection', function (socket) {
         });
 	});
 
-    socket.on('getRoom', function () {
-        async.parallel([function (done) {
-            Controllers.User.getOnlineUsers(done);
-        },
-        function (done) {
-            Controllers.Message.read(done);
-        }], function (err, results) {
-            if(err) {
+    socket.on('getAllRooms', function (data) {
+        // 1. 获取在线且属于_roomId房间的用户
+        // 2. 获取属于_roomId房间里的信息
+        if(data && data._roomId) {
+            Controllers.Room.getById(data._roomId, function  (err, room) {
+                if(err) {
+                    socket.emit('err', {msg: err});
+                } else {
+                    socket.emit('roomData.' + data._roomId, room);
+                }
+            });
+        } else {
+            Controllers.Room.read(function  (err, rooms) {
+               if(err) {
                 socket.emit('err', {msg: err});
-            } else {
-                socket.emit('roomData', {
-                    users: results[0],
-                    messages: results[1]
-                });
-            }
-        });
+               } else {
+                socket.emit('roomsData', rooms);
+               }
+            });
+        }
     });
 
     socket.on('createRoom', function  (room) {
@@ -223,13 +227,23 @@ io.on('connection', function (socket) {
             }
         });
     });
+
+    socket.on('joinRoom', function  (join) {
+       Controllers.User.joinRoom(join, function  (err) {
+            if(err) {
+                socket.emit('err', {msg: err});
+            } else {
+                socket.join(join.room._id);
+                socket.emit('joinRoom.' + join.user._id, join);
+                socket.in(join.room._id).broadcast.emit('messageAdded', {
+                    content: join.user.name + '进入了聊天室',
+                    creator: SYSTEM,
+                    createAt: new Date(),
+                    _id: require('mongoose').Schema.ObjectId();
+                });
+                socket.in(join.room._id).broadcast.emit('joinRoom', join);
+            }
+       });
+    });
 });
-
-/*
-server.listen(port, function () {
-
-	console.log('TechNode is on port ' + port + '!');
-
-});
-*/
 console.log('TechNode is on port ' + port + '!');
