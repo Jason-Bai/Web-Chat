@@ -130,7 +130,12 @@ io.set('authorization', function  (handshakeData, accept) {
 	}
 });
 */
-var messages = [];
+var SYSTEM = {
+	avatarUrl: 'http://www.gravatar.com/avatar/1354ced4c4c59f5621929a15a20b5039',
+	name: 'SYSTEM',
+	email: 'system@163.com'
+};
+
 io.on('connection', function (socket) {
     _userId = socket.handshake.session._userId;
 
@@ -139,6 +144,11 @@ io.on('connection', function (socket) {
             socket.emit('err', {msg: err});
         } else {
             socket.broadcast.emit('online', user);
+            socket.broadcast.emit('messageAdded', {
+            	content: user.name + '进入了聊天室',
+            	creator: SYSTEM,
+            	createAt: new Date()
+            });
         }
     });
 
@@ -150,6 +160,11 @@ io.on('connection', function (socket) {
                 });
             } else {
                 socket.broadcast.emit('offline', user);
+                socket.broadcast.emit('messageAdded', {
+                	content: user.name + '离开了聊天室',
+                	creator: SYSTEM,
+                	createAt: new Date()
+                });
                 delete socket.handshake.session;
             }
         });
