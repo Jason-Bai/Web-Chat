@@ -184,10 +184,6 @@ io.on('connection', function (socket) {
                 io.sockets.emit('messageAdded', message);
             }
         });
-		//messages.push(message);
-
-		//socket.broadcast.emit('messageAdded', message);
-
 	});
 
     socket.on('getRoom', function () {
@@ -206,15 +202,26 @@ io.on('connection', function (socket) {
                 });
             }
         });
-        /*
-        Controllers.User.getOnlineUsers(function (err, users) {
+    });
+
+    socket.on('createRoom', function  (room) {
+        Controllers.Room.create(room, function  (err, room) {
+           if(err) {
+            socket.emit('err', {msg: err});
+           } else {
+            io.sockets.emit('roomAdded', room);
+           }
+        });
+    });
+
+    socket.on('getAllRooms', function  () {
+        Controllers.Room.read(function  (err, rooms) {
             if(err) {
                 socket.emit('err', {msg: err});
             } else {
-                socket.emit('roomData', {users: users, messages: messages});
+                socket.emit('roomsData', rooms);
             }
         });
-        */
     });
 });
 

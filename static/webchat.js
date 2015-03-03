@@ -7,6 +7,7 @@ angular.module('techNodeApp', [
 	'socketService',
 	'autoScrollToBottomDirective',
 	'ctrlEnterBreakLineDirective',
+  'RoomsController',
 	'RoomController',
 	'LoginController'
 ])
@@ -17,7 +18,7 @@ angular.module('techNodeApp', [
     method: 'GET'
   }).success(function  (user) {
     $rootScope.me = user;
-    $location.path('/');
+    $location.path('/rooms');
   }).error(function  (data) {
     $location.path('/login');
   });
@@ -37,7 +38,11 @@ angular.module('techNodeApp', [
 })
 .config(function  ($routeProvider, $locationProvider) {
   $locationProvider.html5Mode(true);
-  $routeProvider.when('/', {
+  $routeProvider
+  .when('/rooms', {
+    templateUrl: '/pages/rooms.html',
+    controller: 'RoomsCtrl'
+  }).when('/rooms/:_roomId', {
     templateUrl: '/pages/room.html',
     controller: 'RoomCtrl'
   }).when('/login', {
