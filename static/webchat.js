@@ -3,6 +3,7 @@
  */
 angular.module('techNodeApp', [
 	'ngRoute',
+  'angularMoment',
 	'socketService',
 	'autoScrollToBottomDirective',
 	'ctrlEnterBreakLineDirective',
