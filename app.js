@@ -18,7 +18,7 @@ var async = require('async');
 var SessionSockets = require('session.socket.io'),
     sessionSockets = new SessionSockets(io, sessionStore, cookieParser);
 */
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -130,15 +130,17 @@ io.set('authorization', function  (handshakeData, accept) {
 	}
 });
 */
+var ObjectId = require('mongoose').Schema.ObjectId;
 var SYSTEM = {
 	avatarUrl: 'http://www.gravatar.com/avatar/1354ced4c4c59f5621929a15a20b5039',
 	name: 'SYSTEM',
-	email: 'system@163.com'
+	email: 'system@163.com',
+    _id: ObjectId()
 };
 
 io.on('connection', function (socket) {
     _userId = socket.handshake.session._userId;
-
+    /*
     Controllers.User.online(_userId, function (err, user) {
         if(err) {
             socket.emit('err', {msg: err});
@@ -151,7 +153,7 @@ io.on('connection', function (socket) {
             });
         }
     });
-
+    */
     socket.on('disconnect', function () {
         Controllers.User.offline(_userId, function (err, user) {
             if(err) {
@@ -159,12 +161,12 @@ io.on('connection', function (socket) {
                     msg: err
                 });
             } else {
-                socket.broadcast.emit('offline', user);
                 socket.broadcast.emit('messageAdded', {
-                	content: user.name + '离开了聊天室',
-                	creator: SYSTEM,
-                	createAt: new Date()
+                    content: user.name + '离开了聊天室',
+                    creator: SYSTEM,
+                    createAt: new Date()
                 });
+                socket.broadcast.emit('offline', user);
                 delete socket.handshake.session;
             }
         });
@@ -177,11 +179,13 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('createMessage', function (message) {
+        _roomId = message._roomId;
         Controllers.Message.create(message, function (err, message) {
             if(err) {
                 socket.emit('err', {msg: err});
             } else {
-                io.sockets.emit('messageAdded', message);
+                socket.in(_roomId).broadcast.emit('messageAdded', message);
+                socket.emit('messageAdded', message);
             }
         });
 	});
@@ -239,7 +243,7 @@ io.on('connection', function (socket) {
                     content: join.user.name + '进入了聊天室',
                     creator: SYSTEM,
                     createAt: new Date(),
-                    _id: require('mongoose').Schema.ObjectId();
+                    _id: ObjectId()
                 });
                 socket.in(join.room._id).broadcast.emit('joinRoom', join);
             }

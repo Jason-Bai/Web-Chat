@@ -1,14 +1,13 @@
 angular.module('RoomController', [
+  'ngRoute',
   'socketService'
 ])
-.controller('RoomCtrl', ['$scope', '$routeParams', 'socket', function ($scope, socket) {
-  _roomId = $routeParams._roomId;
-
+.controller('RoomCtrl', ['$scope', '$routeParams', 'socket', function ($scope, $routeParams, socket) {
   socket.emit('getAllRooms', {
-    _roomId: _roomId
+    _roomId: $routeParams._roomId
   });
 
-  socket.on('roomData.' + _roomId, function  (room) {
+  socket.on('roomData.' + $routeParams._roomId, function  (room) {
     $scope.room = room;
   });
 
@@ -20,31 +19,12 @@ angular.module('RoomController', [
     $scope.room.users.push(join.user);
   });
 
-
-
-  socket.on('allMessages', function (messages) {
-
-    $scope.messages = messages;
-
-  });
-
   $scope.createMessage = function  () {
-    var flag = true;
-    if ($scope.messages.length > 0) {
-       angular.forEach($scope.messages, function (value) {
-          if(value === $scope.newMessage) {
-            flag = false;
-          }
-       });
-    }
-
-    if(flag) {
-      var msgObj = {
-        content: $scope.newMessage,
-        creator: $scope.me
-      };
-      socket.emit('createMessage', msgObj);
-    }
+    socket.emit('createMessage', {
+      content: $scope.newMessage,
+      creator: $scope.me,
+      _roomId: $routeParams._roomId
+    });
     $scope.newMessage = '';
   };
 

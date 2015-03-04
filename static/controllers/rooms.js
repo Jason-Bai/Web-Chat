@@ -1,7 +1,7 @@
 angular.module('RoomsController', [
   'socketService'
 ])
-.controller('RoomsCtrl', function  ($scope, socket) {
+.controller('RoomsCtrl', function  ($scope, $location, socket) {
   socket.emit('getAllRooms');
 
   socket.on('roomsData', function (rooms) {
@@ -37,8 +37,8 @@ angular.module('RoomsController', [
     });
   };
 
-  socket.once('joinRoom.' + $scope.me._id, function  (join) {
-    $locatin.path('/rooms/' + join.room._id);
+  socket.on('joinRoom.' + $scope.me._id, function  (join) {
+    $location.path('/rooms/' + join.room._id);
   });
 
   socket.on('joinRoom', function  (join) {

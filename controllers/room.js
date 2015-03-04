@@ -33,7 +33,7 @@ exports.read = function  (callback) {
   });
 };
 
-exports.getById = function = (_roomId, callback) {
+exports.getById = function (_roomId, callback) {
   db.Room.findOne({
     _id: _roomId
   }, function  (err, room) {
