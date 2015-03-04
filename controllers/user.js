@@ -61,3 +61,13 @@ exports.joinRoom = function  (join, callback) {
     }
   }, callback);
 };
+
+exports.leaveRoom = function (user, callback) {
+  db.User.findOneAndUpdate({
+    _id: user.user._id
+  }, {
+    $set: {
+      _roomId: null
+    }
+  }, callback);
+};

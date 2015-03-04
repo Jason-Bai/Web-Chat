@@ -161,13 +161,16 @@ io.on('connection', function (socket) {
                     msg: err
                 });
             } else {
-                socket.broadcast.emit('messageAdded', {
-                    content: user.name + '离开了聊天室',
-                    creator: SYSTEM,
-                    createAt: new Date()
-                });
-                socket.broadcast.emit('offline', user);
-                delete socket.handshake.session;
+
+                if(user._roomId) {
+                    socket.in(user._roomId).broadcast.emit('leaveRoom', user);
+                    socket.in(user._roomId).broadcast.emit('messageAdded', {
+                        content: user.name + '离开了聊天室',
+                        creator: SYSTEM,
+                        createAt: new Date()
+                    });
+                    Controllers.User.leaveRoom({user: user}, function () {});
+                }
             }
         });
     });
@@ -247,6 +250,23 @@ io.on('connection', function (socket) {
                 });
                 socket.in(join.room._id).broadcast.emit('joinRoom', join);
             }
+       });
+    });
+
+    socket.on('leaveRoom', function  (leave) {
+       Controllers.User.leaveRoom(leave, function  (err) {
+        if(err) {
+            socket.emit('err', {msg: err});
+        } else {
+            socket.in(leave.room._id).broadcast.emit('messageAdded', {
+                content: leave.user.name + '离开了聊天室',
+                creator: SYSTEM,
+                createAt: new Date(),
+                _id: ObjectId()
+            });
+            socket.leave(leave.room._id);
+            io.sockets.emit('leaveRoom', leave);
+        }
        });
     });
 });
